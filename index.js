@@ -1,9 +1,17 @@
-﻿function createElement(tag, attributes, children) {
+﻿function createElement(tag, attributes, children, events) {
   const element = document.createElement(tag);
 
   if (attributes) {
     Object.keys(attributes).forEach((key) => {
-      element.setAttribute(key, attributes[key]);
+      if (attributes[key] !== null) {
+        element.setAttribute(key, attributes[key]);
+      }
+    });
+  }
+
+  if (events) {
+    Object.keys(events).forEach((eventName) => {
+      element.addEventListener(eventName, events[eventName]);
     });
   }
 
@@ -26,47 +34,42 @@
 
 class Component {
   constructor() {
+    this._domNode = null;
   }
 
   getDomNode() {
     this._domNode = this.render();
     return this._domNode;
   }
+
+  update() {
+    const newDomNode = this.render();
+    this._domNode.replaceWith(newDomNode);
+    this._domNode = newDomNode;
+  }
 }
 
-class TodoList extends Component {
+class AddTask extends Component {
+  constructor(onAddTask, onInputChange, text) {
+    super();
+    this.onAddTask = onAddTask;
+    this.onInputChange = onInputChange;
+    this.text = text;
+  }
+
   render() {
-    return createElement("div", { class: "todo-list" }, [
-      createElement("h1", {}, "TODO List"),
-      createElement("div", { class: "add-todo" }, [
-        createElement("input", {
-          id: "new-todo",
-          type: "text",
-          placeholder: "Задание",
-        }),
-        createElement("button", { id: "add-btn" }, "+"),
-      ]),
-      createElement("ul", { id: "todos" }, [
-        createElement("li", {}, [
-          createElement("input", { type: "checkbox" }),
-          createElement("label", {}, "Сделать домашку"),
-          createElement("button", {}, "🗑️")
-        ]),
-        createElement("li", {}, [
-          createElement("input", { type: "checkbox" }),
-          createElement("label", {}, "Сделать практику"),
-          createElement("button", {}, "🗑️")
-        ]),
-        createElement("li", {}, [
-          createElement("input", { type: "checkbox" }),
-          createElement("label", {}, "Пойти домой"),
-          createElement("button", {}, "🗑️")
-        ]),
-      ]),
+    return createElement("div", { class: "add-todo" }, [
+      createElement("input", {
+        type: "text",
+        placeholder: "Задание",
+        value: this.text
+      }, null, {
+        input: this.onInputChange
+      }),
+      createElement("button", {}, "+", {
+        click: this.onAddTask
+      })
     ]);
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.body.appendChild(new TodoList().getDomNode());
-});
